@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.TechPerByteTools" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/bg_dark</item>
+        <item name="android:statusBarColor">@color/surface_dark</item>
+        <item name="android:navigationBarColor">@color/surface_dark</item>
+    </style>
+</resources>
