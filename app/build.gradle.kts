@@ -1,17 +1,18 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
     namespace = "com.techperbyte.tools"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.techperbyte.tools"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 1
+        targetSdk = 36
+        versionCode = 6
         versionName = "1.0"
     }
 
@@ -26,14 +27,6 @@ android {
         }
     }
 
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("arm64-v8a", "armeabi-v7a")
-            isUniversalApk = false
-        }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -43,9 +36,6 @@ android {
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
     }
     packaging {
         resources {
@@ -57,7 +47,7 @@ android {
 }
 
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
+    val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
     implementation(composeBom)
 
     implementation("androidx.core:core-ktx:1.13.1")
@@ -68,7 +58,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.navigation:navigation-compose:2.8.9")
 
     // PDF operations
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
@@ -77,7 +67,7 @@ dependencies {
     implementation("com.google.zxing:core:3.5.3")
 
     // ML Kit OCR — bundled model works fully offline
-    implementation("com.google.mlkit:text-recognition:16.0.0")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
@@ -89,7 +79,7 @@ dependencies {
     implementation("org.jsoup:jsoup:1.17.2")
 
     // Google AdMob
-    implementation("com.google.android.gms:play-services-ads:23.2.0")
+    implementation("com.google.android.gms:play-services-ads:24.3.0")
 
     // Coroutines adapter for Google Tasks API (used by ML Kit await())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
