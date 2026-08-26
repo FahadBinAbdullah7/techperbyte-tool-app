@@ -187,7 +187,7 @@ fun HomeScreen(navController: NavController) {
             // Footer as last grid item
             item(span = { GridItemSpan(maxLineSpan) }) {
                 HomeFooter(onVisitWebsite = {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://techperbyte.com")))
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://techperbyte.vercel.app")))
                 })
             }
         }

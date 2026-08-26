@@ -6,6 +6,7 @@ import android.graphics.Color as AColor
 import android.provider.MediaStore
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,7 +34,7 @@ fun QrCodeScreen(navController: NavController) {
     val context = LocalContext.current
     val scope   = rememberCoroutineScope()
 
-    var text      by remember { mutableStateOf("https://techperbyte.com") }
+    var text      by remember { mutableStateOf("https://techperbyte.vercel.app") }
     var qrSize    by remember { mutableIntStateOf(600) }
     var qrBitmap  by remember { mutableStateOf<Bitmap?>(null) }
     var status    by remember { mutableStateOf("") }
@@ -124,7 +125,11 @@ fun QrCodeScreen(navController: NavController) {
             )
 
             // Size row
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+            ) {
                 Text("Size:", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 listOf(300, 600, 1000).forEach { s ->
                     FilterChip(

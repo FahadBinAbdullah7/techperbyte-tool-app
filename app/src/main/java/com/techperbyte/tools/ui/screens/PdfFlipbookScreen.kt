@@ -10,7 +10,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -91,6 +93,7 @@ fun PdfFlipbookScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -120,7 +123,7 @@ fun PdfFlipbookScreen(navController: NavController) {
 
                 // Page display with flip animation
                 Card(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxWidth().aspectRatio(0.72f),
                     colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.White),
                     shape = RoundedCornerShape(12.dp),
                     elevation = CardDefaults.cardElevation(4.dp),

@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.provider.MediaStore
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -132,7 +133,11 @@ fun YouTubeThumbnailScreen(navController: NavController) {
             )
 
             // Quality picker
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+            ) {
                 Text("Quality:", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 listOf("Max", "High", "SD").forEach { q ->
                     FilterChip(

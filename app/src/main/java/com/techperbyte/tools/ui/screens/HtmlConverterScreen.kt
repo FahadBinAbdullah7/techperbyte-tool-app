@@ -39,7 +39,7 @@ private val SAMPLE_HTML = """<div>
   <h2>Hello World</h2>
   <p>This is a <strong>sample</strong> HTML snippet.</p>
   <ul><li>Item one</li><li>Item two</li></ul>
-  <a href="https://techperbyte.com">Visit TechPerByte</a>
+  <a href="https://techperbyte.vercel.app">Visit TechPerByte</a>
 </div>"""
 
 private fun extractText(html: String): String =

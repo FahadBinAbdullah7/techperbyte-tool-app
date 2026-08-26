@@ -105,11 +105,20 @@ fun PdfCompressorScreen(navController: NavController) {
                 val out = ByteArrayOutputStream()
                 dst.save(out)
                 dst.close()
-                val bytes = out.toByteArray()
+                var bytes = out.toByteArray()
+
+                // Re-rasterizing can bloat text-heavy or already-optimized PDFs.
+                // Never hand back a "compressed" file bigger than the original.
+                var usedOriginal = false
+                if (bytes.size.toLong() >= sourceSize) {
+                    bytes = inputBytes
+                    usedOriginal = true
+                }
 
                 withContext(Dispatchers.Main) {
                     resultBytes = bytes; resultSize = bytes.size.toLong()
-                    compressing = false; done = true; status = ""
+                    compressing = false; done = true
+                    status = if (usedOriginal) "ℹ️ This PDF is already optimized — using the original file since compression didn't reduce its size." else ""
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { compressing = false; status = "Error: ${e.message}" }
@@ -214,7 +223,15 @@ fun PdfCompressorScreen(navController: NavController) {
                 }
             }
 
-            if (status.isNotEmpty()) Text(status, color = if (status.startsWith("✓")) Success else Danger, fontSize = 13.sp)
+            if (status.isNotEmpty()) Text(
+                status,
+                color = when {
+                    status.startsWith("✓") -> Success
+                    status.startsWith("ℹ️") -> TextSecondary
+                    else -> Danger
+                },
+                fontSize = 13.sp,
+            )
         }
     }
 }

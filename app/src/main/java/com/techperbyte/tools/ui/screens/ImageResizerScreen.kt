@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -174,7 +175,7 @@ fun ImageResizerScreen(navController: NavController) {
                 // W / H inputs
                 Card(colors = CardDefaults.cardColors(containerColor = Surface), border = BorderStroke(1.dp, Border), shape = RoundedCornerShape(12.dp)) {
                     Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("Width (px)", color = TextMuted, fontSize = 12.sp)
                                 OutlinedTextField(
@@ -202,7 +203,12 @@ fun ImageResizerScreen(navController: NavController) {
 
                         // Presets
                         Text("Quick presets:", color = TextSecondary, fontSize = 12.sp)
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                        ) {
                             listOf(1920 to 1080, 1280 to 720, 800 to 600, 400 to 400).forEach { (pw, ph) ->
                                 OutlinedButton(
                                     onClick = { lockRatio = false; widthStr = pw.toString(); heightStr = ph.toString(); resultBytes = null },
@@ -216,7 +222,11 @@ fun ImageResizerScreen(navController: NavController) {
                 }
 
                 // Format
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                ) {
                     Text("Format:", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     listOf("JPEG", "PNG", "WEBP").forEach { f ->
                         FilterChip(

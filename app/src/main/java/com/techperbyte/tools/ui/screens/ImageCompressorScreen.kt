@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -165,7 +166,10 @@ fun ImageCompressorScreen(navController: NavController) {
 
                 // Format
                 Text("Output Format", color = TextMuted, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                ) {
                     listOf("JPEG", "PNG", "WEBP").forEach { f ->
                         FilterChip(
                             selected = format == f,

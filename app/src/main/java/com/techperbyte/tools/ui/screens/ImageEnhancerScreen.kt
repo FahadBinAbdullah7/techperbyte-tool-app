@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import com.techperbyte.tools.ui.components.ToolScaffold
 import com.techperbyte.tools.ui.theme.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -176,13 +177,18 @@ fun ImageEnhancerScreen(navController: NavController) {
         }
     }
 
-    fun enhance() {
-        val bmp = sourceBmp ?: return
+    // Live preview: re-render automatically whenever the source image or any
+    // adjustment changes, debounced so dragging a slider doesn't spam full-res renders.
+    LaunchedEffect(sourceBmp, brightness, contrast, saturation, sharpness) {
+        val bmp = sourceBmp ?: return@LaunchedEffect
+        delay(150)
         processing = true
-        scope.launch(Dispatchers.Default) {
-            val enhanced = applyEnhancements(bmp, brightness, contrast, saturation, sharpness)
-            withContext(Dispatchers.Main) { resultBmp = enhanced; processing = false; status = "" }
+        val enhanced = withContext(Dispatchers.Default) {
+            applyEnhancements(bmp, brightness, contrast, saturation, sharpness)
         }
+        resultBmp = enhanced
+        processing = false
+        status = ""
     }
 
     fun save() {
@@ -288,24 +294,23 @@ fun ImageEnhancerScreen(navController: NavController) {
                     }
                 }
 
-                Button(
-                    onClick = { enhance() },
-                    enabled = !processing,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
-                    shape  = RoundedCornerShape(10.dp),
-                ) { Text(if (processing) "Processing…" else "✨  Apply Enhancement", fontWeight = FontWeight.Bold) }
-
-                // Preview
-                resultBmp?.let { bmp ->
-                    Card(colors = CardDefaults.cardColors(containerColor = Surface), border = BorderStroke(1.dp, SuccessDark), shape = RoundedCornerShape(12.dp)) {
-                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("Enhanced Preview", color = Success, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                            Image(bitmap = bmp.asImageBitmap(), contentDescription = "Enhanced", modifier = Modifier.fillMaxWidth())
-                            Button(onClick = { showSaveDialog = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = SuccessDark), shape = RoundedCornerShape(10.dp)) {
-                                Text("⬇  Save Enhanced PNG", fontWeight = FontWeight.Bold)
-                            }
+                // Live preview — updates automatically as sliders/presets change
+                Card(colors = CardDefaults.cardColors(containerColor = Surface), border = BorderStroke(1.dp, SuccessDark), shape = RoundedCornerShape(12.dp)) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Live Preview", color = Success, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            if (processing) CircularProgressIndicator(color = Success, strokeWidth = 2.dp, modifier = Modifier.size(14.dp))
                         }
+                        (resultBmp ?: sourceBmp)?.let { bmp ->
+                            Image(bitmap = bmp.asImageBitmap(), contentDescription = "Enhanced", modifier = Modifier.fillMaxWidth())
+                        }
+                        Button(
+                            onClick = { showSaveDialog = true },
+                            enabled = resultBmp != null && !processing,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = SuccessDark),
+                            shape = RoundedCornerShape(10.dp),
+                        ) { Text("⬇  Save Enhanced PNG", fontWeight = FontWeight.Bold) }
                     }
                 }
             }
