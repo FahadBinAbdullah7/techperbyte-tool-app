@@ -193,8 +193,10 @@ fun HomeScreen(navController: NavController) {
         }
 
         // ── Banner ad pinned at the bottom ───────────────────────────────────
-        HorizontalDivider(color = Border, thickness = 1.dp)
-        BannerAd()
+        Column(modifier = Modifier.navigationBarsPadding()) {
+            HorizontalDivider(color = Border, thickness = 1.dp)
+            BannerAd()
+        }
     }
 }
 

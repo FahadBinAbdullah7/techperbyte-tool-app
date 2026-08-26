@@ -74,6 +74,8 @@ fun PdfFlipbookScreen(navController: NavController) {
                 p.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                 p.close(); renderer.close(); pfd.close()
                 withContext(Dispatchers.Main) { pageBitmap = bmp; loading = false }
+            } catch (e: OutOfMemoryError) {
+                withContext(Dispatchers.Main) { loading = false }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { loading = false }
             }

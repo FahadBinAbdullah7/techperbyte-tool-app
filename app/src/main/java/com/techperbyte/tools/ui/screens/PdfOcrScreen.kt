@@ -113,6 +113,8 @@ fun PdfOcrScreen(navController: NavController) {
                     resultText = sb.toString().trim().ifEmpty { "No text found in PDF." }
                     processing = false; status = ""
                 }
+            } catch (e: OutOfMemoryError) {
+                withContext(Dispatchers.Main) { processing = false; status = "Error: This PDF is too large to process on this device." }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { processing = false; status = "Error: ${e.message}" }
             }

@@ -1,6 +1,8 @@
 package com.techperbyte.tools.ui.screens
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -29,6 +31,29 @@ fun uriFileSize(context: Context, uri: Uri): Long {
         val idx = c.getColumnIndex(OpenableColumns.SIZE)
         if (c.moveToFirst() && idx >= 0) c.getLong(idx) else 0L
     } ?: 0L
+}
+
+/**
+ * Decodes [uri] downsampled so neither side exceeds ~[reqSide] px, using
+ * BitmapFactory's inSampleSize so the full-resolution image is never fully
+ * allocated in memory. A 50-100MP camera photo decoded at native resolution
+ * (~400MB+ as ARGB_8888) is a common OutOfMemoryError crash on real devices —
+ * every screen that decodes a user-picked photo should go through this
+ * instead of calling BitmapFactory.decodeStream directly.
+ */
+fun decodeSampledBitmap(context: Context, uri: Uri, reqSide: Int): Bitmap? = try {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+    var sampleSize = 1
+    if (bounds.outHeight > reqSide || bounds.outWidth > reqSide) {
+        val halfH = bounds.outHeight / 2
+        val halfW = bounds.outWidth / 2
+        while (halfH / sampleSize >= reqSide && halfW / sampleSize >= reqSide) sampleSize *= 2
+    }
+    val opts = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+    context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
+} catch (_: OutOfMemoryError) {
+    null
 }
 
 fun isNetworkAvailable(context: Context): Boolean {

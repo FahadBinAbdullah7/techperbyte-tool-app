@@ -8,12 +8,19 @@ import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -87,7 +94,8 @@ fun ImageResizerScreen(navController: NavController) {
         val h = heightStr.toIntOrNull()?.coerceAtLeast(1) ?: return
         scope.launch(Dispatchers.IO) {
             try {
-                val bmp: Bitmap = context.contentResolver.openInputStream(uri)!!.use { BitmapFactory.decodeStream(it) }
+                val bmp = decodeSampledBitmap(context, uri, maxOf(w, h))
+                    ?: throw IllegalStateException("Could not read the image")
                 val scaled = Bitmap.createScaledBitmap(bmp, w, h, true)
                 val out = ByteArrayOutputStream()
                 val fmt = when (format) { "PNG" -> Bitmap.CompressFormat.PNG; "WEBP" -> Bitmap.CompressFormat.WEBP; else -> Bitmap.CompressFormat.JPEG }
@@ -95,6 +103,8 @@ fun ImageResizerScreen(navController: NavController) {
                 withContext(Dispatchers.Main) {
                     resultBytes = out.toByteArray(); resultW = w; resultH = h; status = ""
                 }
+            } catch (e: OutOfMemoryError) {
+                withContext(Dispatchers.Main) { status = "Error: Image is too large to process on this device." }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { status = "Error: ${e.message}" }
             }
@@ -186,8 +196,21 @@ fun ImageResizerScreen(navController: NavController) {
                                     colors = textFieldColors(),
                                 )
                             }
-                            IconButton(onClick = { lockRatio = !lockRatio }) {
-                                Text(if (lockRatio) "🔒" else "🔓", fontSize = 20.sp)
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(if (lockRatio) Primary else SurfaceVariant)
+                                    .border(1.dp, if (lockRatio) Primary else Border, CircleShape)
+                                    .clickable { lockRatio = !lockRatio },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = if (lockRatio) Icons.Filled.Lock else Icons.Filled.LockOpen,
+                                    contentDescription = if (lockRatio) "Aspect ratio locked — tap to unlock" else "Aspect ratio unlocked — tap to lock",
+                                    tint = if (lockRatio) androidx.compose.ui.graphics.Color.White else TextSecondary,
+                                    modifier = Modifier.size(22.dp),
+                                )
                             }
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("Height (px)", color = TextMuted, fontSize = 12.sp)
@@ -217,7 +240,22 @@ fun ImageResizerScreen(navController: NavController) {
                                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                                 ) { Text("${pw}×${ph}", fontSize = 10.sp, color = TextSecondary) }
                             }
+                            OutlinedButton(
+                                onClick = {
+                                    lockRatio = true
+                                    widthStr = origW.toString(); heightStr = origH.toString()
+                                    resultBytes = null
+                                },
+                                shape  = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.dp, Accent),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                            ) { Text("↺ Custom (original size)", fontSize = 10.sp, color = Accent) }
                         }
+                        Text(
+                            "Or just type any width/height below — presets are just shortcuts.",
+                            color = TextSecondary,
+                            fontSize = 11.sp,
+                        )
                     }
                 }
 

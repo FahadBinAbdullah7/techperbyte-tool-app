@@ -1,7 +1,6 @@
 package com.techperbyte.tools.ui.screens
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,7 +32,6 @@ import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import java.io.ByteArrayOutputStream
-import kotlin.math.min
 
 private val SAMPLE_HTML = """<div>
   <h2>Hello World</h2>
@@ -72,18 +70,16 @@ fun HtmlConverterScreen(navController: NavController) {
             imageUri = it; imageHtml = ""; imageLoading = true
             scope.launch(Dispatchers.IO) {
                 try {
-                    val raw = context.contentResolver.openInputStream(it)!!.use { s -> BitmapFactory.decodeStream(s) }
                     val maxSide = 1024
-                    val ratio = if (raw.width > maxSide || raw.height > maxSide)
-                        min(maxSide.toFloat() / raw.width, maxSide.toFloat() / raw.height) else 1f
-                    val bmp = if (ratio < 1f)
-                        Bitmap.createScaledBitmap(raw, (raw.width * ratio).toInt(), (raw.height * ratio).toInt(), true)
-                    else raw
+                    val bmp = decodeSampledBitmap(context, it, maxSide)
+                        ?: throw IllegalStateException("Could not read the image")
                     val out = ByteArrayOutputStream()
                     bmp.compress(Bitmap.CompressFormat.JPEG, 85, out)
                     val b64 = android.util.Base64.encodeToString(out.toByteArray(), android.util.Base64.NO_WRAP)
                     val html = """<img src="data:image/jpeg;base64,$b64" alt="image" style="max-width:100%;height:auto">"""
                     withContext(Dispatchers.Main) { imageHtml = html; imageLoading = false }
+                } catch (e: OutOfMemoryError) {
+                    withContext(Dispatchers.Main) { imageHtml = "Error: Image is too large to process on this device."; imageLoading = false }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) { imageHtml = "Error: ${e.message}"; imageLoading = false }
                 }

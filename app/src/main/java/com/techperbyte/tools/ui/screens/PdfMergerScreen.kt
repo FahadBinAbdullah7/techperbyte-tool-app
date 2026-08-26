@@ -87,6 +87,8 @@ fun PdfMergerScreen(navController: NavController) {
                 streams.forEach { it.close() }
                 val bytes = out.toByteArray()
                 withContext(Dispatchers.Main) { resultBytes = bytes; merging = false }
+            } catch (e: OutOfMemoryError) {
+                withContext(Dispatchers.Main) { merging = false; status = "Error: These PDFs are too large to merge on this device." }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { merging = false; status = "Error: ${e.message}" }
             }

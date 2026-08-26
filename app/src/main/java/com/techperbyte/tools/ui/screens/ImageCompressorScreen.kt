@@ -2,7 +2,6 @@ package com.techperbyte.tools.ui.screens
 
 import android.content.ContentValues
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -63,7 +62,11 @@ fun ImageCompressorScreen(navController: NavController) {
         processing = true
         scope.launch(Dispatchers.IO) {
             try {
-                val bmp: Bitmap = context.contentResolver.openInputStream(uri)!!.use { BitmapFactory.decodeStream(it) }
+                // Cap at a generous 4000px side — real compression targets (email,
+                // upload, web) never need more, and it prevents OOM crashes on
+                // 50-100MP camera photos.
+                val bmp = decodeSampledBitmap(context, uri, 4000)
+                    ?: throw IllegalStateException("Could not read the image")
                 val out = ByteArrayOutputStream()
                 val fmt = when (format) {
                     "PNG"  -> Bitmap.CompressFormat.PNG
@@ -78,6 +81,8 @@ fun ImageCompressorScreen(navController: NavController) {
                     processing  = false
                     status = ""
                 }
+            } catch (e: OutOfMemoryError) {
+                withContext(Dispatchers.Main) { processing = false; status = "Error: Image is too large to process on this device." }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { processing = false; status = "Error: ${e.message}" }
             }

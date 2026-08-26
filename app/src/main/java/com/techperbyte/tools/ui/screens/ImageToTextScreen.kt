@@ -1,6 +1,5 @@
 package com.techperbyte.tools.ui.screens
 
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -54,7 +53,10 @@ fun ImageToTextScreen(navController: NavController) {
         extracting = true
         scope.launch(Dispatchers.IO) {
             try {
-                val bmp = context.contentResolver.openInputStream(uri)!!.use { BitmapFactory.decodeStream(it) }
+                // OCR accuracy doesn't benefit from native resolution — cap it to
+                // avoid OOM on very large camera photos.
+                val bmp = decodeSampledBitmap(context, uri, 2500)
+                    ?: throw IllegalStateException("Could not read the image")
                 val image = InputImage.fromBitmap(bmp, 0)
                 val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
                 val result = recognizer.process(image).await()
@@ -62,6 +64,8 @@ fun ImageToTextScreen(navController: NavController) {
                     resultText = result.text.ifEmpty { "(No text detected in this image)" }
                     extracting = false; status = ""
                 }
+            } catch (e: OutOfMemoryError) {
+                withContext(Dispatchers.Main) { extracting = false; status = "Error: Image is too large to process on this device." }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { extracting = false; status = "Error: ${e.message}" }
             }

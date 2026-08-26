@@ -154,17 +154,12 @@ fun ImageEnhancerScreen(navController: NavController) {
         uri?.let {
             sourceUri = it
             resultBmp = null
+            status = ""
             scope.launch(Dispatchers.IO) {
-                val bmp: Bitmap = context.contentResolver.openInputStream(it)!!.use {
-                    val raw = BitmapFactory.decodeStream(it)
-                    // Scale down if very large to avoid OOM
-                    val maxSide = 2000
-                    if (raw.width > maxSide || raw.height > maxSide) {
-                        val ratio = min(maxSide.toFloat() / raw.width, maxSide.toFloat() / raw.height)
-                        Bitmap.createScaledBitmap(raw, (raw.width * ratio).toInt(), (raw.height * ratio).toInt(), true)
-                    } else raw
+                val bmp = decodeSampledBitmap(context, it, 2000)
+                withContext(Dispatchers.Main) {
+                    if (bmp == null) status = "Error: Image is too large to process on this device." else sourceBmp = bmp
                 }
-                withContext(Dispatchers.Main) { sourceBmp = bmp }
             }
         }
     }
@@ -183,8 +178,14 @@ fun ImageEnhancerScreen(navController: NavController) {
         val bmp = sourceBmp ?: return@LaunchedEffect
         delay(150)
         processing = true
-        val enhanced = withContext(Dispatchers.Default) {
-            applyEnhancements(bmp, brightness, contrast, saturation, sharpness)
+        val enhanced = try {
+            withContext(Dispatchers.Default) {
+                applyEnhancements(bmp, brightness, contrast, saturation, sharpness)
+            }
+        } catch (e: OutOfMemoryError) {
+            status = "Error: Image is too large to process on this device."
+            processing = false
+            return@LaunchedEffect
         }
         resultBmp = enhanced
         processing = false

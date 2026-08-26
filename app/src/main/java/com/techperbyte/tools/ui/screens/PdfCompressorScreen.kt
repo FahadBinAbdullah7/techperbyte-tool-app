@@ -120,6 +120,8 @@ fun PdfCompressorScreen(navController: NavController) {
                     compressing = false; done = true
                     status = if (usedOriginal) "ℹ️ This PDF is already optimized — using the original file since compression didn't reduce its size." else ""
                 }
+            } catch (e: OutOfMemoryError) {
+                withContext(Dispatchers.Main) { compressing = false; status = "Error: This PDF is too large/complex to process on this device." }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { compressing = false; status = "Error: ${e.message}" }
             }
